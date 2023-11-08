@@ -1,21 +1,21 @@
 import { useState, useRef } from "react"
-import ReCAPTCHA from "react-google-recaptcha"
+import Reaptcha from "reaptcha"
 import "./App.css"
 
 function App() {
   const recaptcha = useRef()
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
+  const [captchaToken, setCaptchaToken] = useState(null)
 
   async function submitForm(event) {
     event.preventDefault()
-    const captchaValue = recaptcha.current.getValue()
-    if (!captchaValue) {
+    if (!captchaToken) {
       alert("Please verify the reCAPTCHA!")
     } else {
       const res = await fetch("http://localhost:8000/verify", {
         method: "POST",
-        body: JSON.stringify({ captchaValue }),
+        body: JSON.stringify({ captchaToken }),
         headers: {
           "content-type": "application/json"
         }
@@ -28,6 +28,12 @@ function App() {
         alert("reCAPTCHA validation failed!")
       }
     }
+  }
+
+  async function verify() {
+    recaptcha.current.getResponse().then((res) => {
+      setCaptchaToken(res)
+    })
   }
 
   return (
@@ -51,10 +57,11 @@ function App() {
           onChange={(event) => setName(event.target.value)}
         />
         <button type="submit">Sign up</button>
-        <ReCAPTCHA
+        <Reaptcha
           ref={recaptcha}
           sitekey="6LfMSgUpAAAAAGdz-_Yq62BVN16ptPh73G3t1E5d"
-        />
+          onVerify={verify}
+        ></Reaptcha>
       </form>
     </div>
   )
